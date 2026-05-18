@@ -2,7 +2,7 @@ import React from 'react';
 import type { Lead } from '../../types';
 import { STATUS_COLORS, PRIORITY_COLORS } from '../../types';
 import { formatDate } from '../../utils/helpers';
-import { MoreHorizontal, Edit2, Trash2, Eye } from 'lucide-react';
+import { Edit2, Trash2, Eye } from 'lucide-react';
 
 interface LeadTableProps {
   leads: Lead[];

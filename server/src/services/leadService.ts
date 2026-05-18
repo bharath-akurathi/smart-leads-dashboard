@@ -74,7 +74,7 @@ export const getLeads = async (
     hasPrev: page > 1,
   };
 
-  return { data: data as ILeadDocument[], meta };
+  return { data: data as any, meta };
 };
 
 /**
@@ -98,14 +98,15 @@ export const getLeadById = async (
   }
 
   // RBAC check: Sales users can only access their own leads
+  const creatorId = (lead as any).createdBy?._id || (lead as any).createdBy;
   if (
     userRole === UserRole.SALES &&
-    lead.createdBy._id.toString() !== userId.toString()
+    creatorId?.toString() !== userId.toString()
   ) {
     throw new AppError('Access denied. You can only view your own leads.', 403);
   }
 
-  return lead as ILeadDocument;
+  return lead as any;
 };
 
 /**
@@ -120,7 +121,7 @@ export const createLead = async (
     createdBy: userId,
   });
 
-  return lead.toJSON() as ILeadDocument;
+  return lead.toJSON() as any;
 };
 
 /**
@@ -143,9 +144,10 @@ export const updateLead = async (
   }
 
   // RBAC check
+  const creatorId = (lead as any).createdBy?._id || (lead as any).createdBy;
   if (
     userRole === UserRole.SALES &&
-    lead.createdBy.toString() !== userId.toString()
+    creatorId?.toString() !== userId.toString()
   ) {
     throw new AppError('Access denied. You can only update your own leads.', 403);
   }
@@ -157,7 +159,7 @@ export const updateLead = async (
     .populate('createdBy', 'name email')
     .lean();
 
-  return updatedLead as ILeadDocument;
+  return updatedLead as any;
 };
 
 /**
@@ -179,9 +181,10 @@ export const deleteLead = async (
   }
 
   // RBAC check
+  const creatorId = (lead as any).createdBy?._id || (lead as any).createdBy;
   if (
     userRole === UserRole.SALES &&
-    lead.createdBy.toString() !== userId.toString()
+    creatorId?.toString() !== userId.toString()
   ) {
     throw new AppError('Access denied. You can only delete your own leads.', 403);
   }
@@ -201,7 +204,7 @@ export const getLeadsForExport = async (
     .sort({ createdAt: -1 })
     .lean();
 
-  return leads as ILeadDocument[];
+  return leads as any;
 };
 
 /**

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable .dark class as a parent variant for Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ─── Custom Theme ──────────────────────────────────────────── */
 @theme {
   /* Colors - Brand */

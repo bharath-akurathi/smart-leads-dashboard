@@ -6,11 +6,11 @@ import LeadFilters from '../components/leads/LeadFilters';
 import LeadForm from '../components/leads/LeadForm';
 import Modal from '../components/ui/Modal';
 import Pagination from '../components/ui/Pagination';
-import { getLeadsApi, createLeadApi, updateLeadApi, deleteLeadApi, exportLeadsCsvApi, bulkDeleteApi, bulkUpdateStatusApi } from '../api/leads.api';
+import { getLeadsApi, createLeadApi, updateLeadApi, deleteLeadApi, exportLeadsCsvApi, bulkDeleteApi } from '../api/leads.api';
 import { useDebounce } from '../hooks/useDebounce';
 import { downloadCsv } from '../utils/helpers';
 import type { Lead, LeadFilters as FiltersType, LeadForm as LeadFormType, PaginationMeta } from '../types';
-import { LEAD_STATUSES } from '../types';
+
 import { Plus, Download, Trash2, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
 

@@ -4,13 +4,11 @@ import { useAuth } from '../context/AuthContext';
 import { registerApi } from '../api/auth.api';
 import { Zap, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { UserRole } from '../types';
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('sales');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -33,7 +31,8 @@ const RegisterPage: React.FC = () => {
 
     setIsLoading(true);
     try {
-      const data = await registerApi({ name, email, password, role });
+      // All self-registered accounts are sales users by default
+      const data = await registerApi({ name, email, password, role: 'sales' });
       login(data.token, data.user);
       toast.success('Account created successfully!');
       navigate('/dashboard');
@@ -46,34 +45,35 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface-secondary dark:bg-surface-dark p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] dark:bg-[#0D0D0D] p-4 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-3xl" />
-      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-accent/5 blur-3xl" />
+      <div className="absolute top-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[#2AB0A6]/5 blur-3xl" />
+      <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-[#2AB0A6]/5 blur-3xl" />
 
       <div className="glass-card w-full max-w-md p-8 md:p-10 animate-scale-in relative">
         {/* Logo */}
         <div className="flex items-center justify-center gap-3 mb-8">
-          <div className="w-11 h-11 rounded-xl bg-accent flex items-center justify-center">
+          <div className="w-11 h-11 rounded-xl bg-[#2AB0A6] flex items-center justify-center">
             <Zap className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-text-primary dark:text-text-dark" style={{ fontFamily: 'var(--font-display)' }}>
+          <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)' }}>
             SmartLeads
           </h1>
         </div>
 
         <div className="text-center mb-8">
-          <h2 className="text-xl font-bold text-text-primary dark:text-text-dark mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+          <h2 className="text-xl font-bold mb-1" style={{ fontFamily: 'var(--font-display)' }}>
             Create your account
           </h2>
-          <p className="text-sm text-text-secondary dark:text-text-dark-secondary">
+          <p className="text-sm text-[#64748B] dark:text-[#CBD5E1]">
             Start managing your sales pipeline today
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Name */}
           <div>
-            <label htmlFor="reg-name" className="block text-sm font-medium text-text-primary dark:text-text-dark mb-1.5">
+            <label htmlFor="reg-name" className="block text-sm font-medium mb-1.5">
               Full Name
             </label>
             <input
@@ -88,8 +88,9 @@ const RegisterPage: React.FC = () => {
             {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name}</p>}
           </div>
 
+          {/* Email */}
           <div>
-            <label htmlFor="reg-email" className="block text-sm font-medium text-text-primary dark:text-text-dark mb-1.5">
+            <label htmlFor="reg-email" className="block text-sm font-medium mb-1.5">
               Email
             </label>
             <input
@@ -104,8 +105,9 @@ const RegisterPage: React.FC = () => {
             {errors.email && <p className="text-xs text-red-500 mt-1">{errors.email}</p>}
           </div>
 
+          {/* Password */}
           <div>
-            <label htmlFor="reg-password" className="block text-sm font-medium text-text-primary dark:text-text-dark mb-1.5">
+            <label htmlFor="reg-password" className="block text-sm font-medium mb-1.5">
               Password
             </label>
             <div className="relative">
@@ -121,34 +123,13 @@ const RegisterPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-text-tertiary hover:text-text-secondary"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#64748B]"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
             {errors.password && <p className="text-xs text-red-500 mt-1">{errors.password}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="reg-role" className="block text-sm font-medium text-text-primary dark:text-text-dark mb-1.5">
-              Role
-            </label>
-            <div className="flex gap-3">
-              {(['sales', 'admin'] as UserRole[]).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => setRole(r)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 capitalize ${
-                    role === r
-                      ? 'bg-accent/10 border-accent text-accent'
-                      : 'bg-surface dark:bg-surface-dark-tertiary border-border dark:border-border-dark text-text-secondary dark:text-text-dark-secondary hover:border-accent/30'
-                  }`}
-                >
-                  {r === 'sales' ? '💼 Sales User' : '🛡️ Admin'}
-                </button>
-              ))}
-            </div>
           </div>
 
           <button
@@ -167,9 +148,9 @@ const RegisterPage: React.FC = () => {
           </button>
         </form>
 
-        <p className="text-center text-sm text-text-secondary dark:text-text-dark-secondary mt-6">
+        <p className="text-center text-sm text-[#64748B] dark:text-[#CBD5E1] mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-accent font-medium hover:underline">
+          <Link to="/login" className="text-[#2AB0A6] font-medium hover:underline">
             Sign in
           </Link>
         </p>

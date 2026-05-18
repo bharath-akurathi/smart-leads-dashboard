@@ -109,7 +109,7 @@ export const getLeadById = async (
 ): Promise<void> => {
   try {
     const lead = await leadService.getLeadById(
-      req.params.id,
+      req.params.id as string,
       req.user!.role,
       req.user!._id
     );
@@ -133,7 +133,7 @@ export const createLead = async (
 ): Promise<void> => {
   try {
     const parsed = createLeadSchema.parse(req.body);
-    const lead = await leadService.createLead(parsed, req.user!._id);
+    const lead = await leadService.createLead(parsed as any, req.user!._id);
 
     res.status(201).json({
       success: true,
@@ -156,8 +156,8 @@ export const updateLead = async (
   try {
     const parsed = updateLeadSchema.parse(req.body);
     const lead = await leadService.updateLead(
-      req.params.id,
-      parsed,
+      req.params.id as string,
+      parsed as any,
       req.user!.role,
       req.user!._id
     );
@@ -182,7 +182,7 @@ export const deleteLead = async (
 ): Promise<void> => {
   try {
     await leadService.deleteLead(
-      req.params.id,
+      req.params.id as string,
       req.user!.role,
       req.user!._id
     );
