@@ -1,31 +1,28 @@
 import mongoose from 'mongoose';
 
+// Cache connection across serverless invocations
 let isConnected = false;
 
 const connectDB = async (): Promise<void> => {
-  // If already connected, reuse the active connection instance
   if (isConnected) {
     console.log('✅ Using existing MongoDB connection');
     return;
   }
 
+  const uri = process.env.MONGO_URI;
+  if (!uri) throw new Error('MONGO_URI is not defined');
+
   try {
-    const mongoURI = process.env.MONGO_URI;
-    if (!mongoURI) {
-      throw new Error('MONGO_URI is not defined in environment variables');
-    }
-
-    const conn = await mongoose.connect(mongoURI, {
+    await mongoose.connect(uri, {
       dbName: 'smart-leads',
+      serverSelectionTimeoutMS: 10000, // fail fast — 10s not 30s
+      socketTimeoutMS: 45000,
     });
-
-    isConnected = !!conn.connections[0].readyState;
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    isConnected = true;
+    console.log(`✅ MongoDB Connected: ${mongoose.connection.host}`);
   } catch (error) {
     console.error('❌ MongoDB Connection Error:', error);
-    // CRITICAL: Do NOT use process.exit(1) here for Vercel.
-    // Instead, throw the error so the serverless function framework can log it.
-    throw error; 
+    throw error; // let the error handler catch it, don't process.exit()
   }
 };
 
