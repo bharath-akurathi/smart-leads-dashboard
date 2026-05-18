@@ -19,14 +19,14 @@ export class AppError extends Error {
  * Centralized error handler middleware.
  */
 const errorHandler = (
-  err: Error | AppError,
+  err: any,
   _req: Request,
   res: Response,
   _next: NextFunction
 ): void => {
-  // Default error values
-  let statusCode = 500;
-  let message = 'Internal Server Error';
+  // Safe fallbacks to prevent TypeError crashes in serverless
+  let statusCode = err.statusCode || err.status || 500;
+  let message = err.message || 'Internal Server Error';
 
   if (err instanceof AppError) {
     statusCode = err.statusCode;
@@ -38,7 +38,7 @@ const errorHandler = (
   } else if (err.name === 'CastError') {
     statusCode = 400;
     message = 'Invalid ID format';
-  } else if ((err as any).code === 11000) {
+  } else if (err.code === 11000) {
     // MongoDB duplicate key error
     statusCode = 409;
     message = 'Duplicate entry — this record already exists';
@@ -47,6 +47,9 @@ const errorHandler = (
   // Log non-operational errors in development
   if (process.env.NODE_ENV === 'development' && statusCode === 500) {
     console.error('🔥 Unhandled Error:', err);
+  } else if (process.env.NODE_ENV !== 'development') {
+    // Also log in production for Vercel functions observability
+    console.error('Logged Error:', err);
   }
 
   res.status(statusCode).json({

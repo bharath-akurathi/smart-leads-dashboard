@@ -10,9 +10,6 @@ import connectDB from './config/db';
 
 const app = express();
 
-// Initialize MongoDB connection for Serverless context
-connectDB();
-
 // CORS — must be before helmet
 app.use(
   cors({
@@ -38,6 +35,17 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
+
+// Serverless-safe Database Connection Middleware
+// This ensures MongoDB is ready before handling any incoming API routing
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 
 // Health check
 app.get('/health', (_req, res) => {
