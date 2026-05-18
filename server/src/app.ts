@@ -10,19 +10,7 @@ import connectDB from './config/db';
 
 const app = express();
 
-// ─── SERVERLESS DATABASE MIDDLEWARE ────────────────────────────────────
-// This guarantees MongoDB is ready before handling any routing.
-// It catches connection failures safely without crashing the Vercel container.
-app.use(async (_req, _res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (error) {
-    next(error); 
-  }
-});
-
-// ─── DYNAMIC CORS CONFIGURATION ────────────────────────────────────────
+// ─── 1. DYNAMIC CORS CONFIGURATION (Run this FIRST) ────────────────────
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
@@ -38,8 +26,9 @@ app.use(
       // Allow requests that match the allowed origins
       if (allowedOrigins.includes(origin)) return callback(null, true);
       
-      // If it doesn't match, block it
-      callback(new Error(`CORS blocked: ${origin}`));
+      // Changed to console.warn to log it without crashing the request pipeline
+      console.warn(`CORS blocked request from origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Included PATCH from your original routes
@@ -49,6 +38,18 @@ app.use(
 
 // Explicitly handle preflight for all routes
 app.options('*', cors());
+
+// ─── 2. SERVERLESS DATABASE MIDDLEWARE (Run this SECOND) ───────────────
+// This guarantees MongoDB is ready before handling any routing.
+// It catches connection failures safely without crashing the Vercel container.
+app.use(async (_req, _res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error); 
+  }
+});
 
 // ─── SECURITY & PARSING MIDDLEWARE ─────────────────────────────────────
 app.use(
