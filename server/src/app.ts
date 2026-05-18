@@ -6,8 +6,12 @@ import morgan from 'morgan';
 import authRoutes from './routes/auth.routes';
 import leadRoutes from './routes/lead.routes';
 import errorHandler from './middleware/errorHandler';
+import connectDB from './config/db';
 
 const app = express();
+
+// Initialize MongoDB connection for Serverless context
+connectDB();
 
 // CORS — must be before helmet
 app.use(
