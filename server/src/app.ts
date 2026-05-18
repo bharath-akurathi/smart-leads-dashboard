@@ -10,38 +10,37 @@ import connectDB from './config/db';
 
 const app = express();
 
-// ─── 1. DYNAMIC CORS CONFIGURATION (Run this FIRST) ────────────────────
+// ─── 1. CORS CONFIGURATION (Run this first) ─────────────────────────────
 const allowedOrigins = [
   process.env.CLIENT_URL,
   'http://localhost:5173',
-  'http://localhost:5174' // Added fallback local port based on your README
+  'http://localhost:5174'
 ].filter(Boolean) as string[];
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, curl, Postman)
+      // Allow requests with no origin (like mobile apps or curl)
       if (!origin) return callback(null, true);
       
-      // Allow requests that match the allowed origins
+      // If valid, allow it
       if (allowedOrigins.includes(origin)) return callback(null, true);
       
-      // Changed to console.warn to log it without crashing the request pipeline
-      console.warn(`CORS blocked request from origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      // Reject gracefully without crashing the app with a 500 error
+      console.warn(`Blocked CORS request from: ${origin}`);
+      callback(null, false); 
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Included PATCH from your original routes
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
-// Explicitly handle preflight for all routes
+// Explicitly handle preflight OPTIONS requests for all routes
 app.options('*', cors());
 
-// ─── 2. SERVERLESS DATABASE MIDDLEWARE (Run this SECOND) ───────────────
-// This guarantees MongoDB is ready before handling any routing.
-// It catches connection failures safely without crashing the Vercel container.
+// ─── 2. SERVERLESS DATABASE MIDDLEWARE ──────────────────────────────────
+// Ensures MongoDB is connected before handling any actual API routes
 app.use(async (_req, _res, next) => {
   try {
     await connectDB();
@@ -51,44 +50,27 @@ app.use(async (_req, _res, next) => {
   }
 });
 
-// ─── SECURITY & PARSING MIDDLEWARE ─────────────────────────────────────
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-  })
-);
-
+// ─── 3. SECURITY & PARSING ──────────────────────────────────────────────
+app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Logging in development
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
 }
 
-// ─── ROUTES ────────────────────────────────────────────────────────────
-// Health check
+// ─── 4. ROUTES ──────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
-  res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/leads', leadRoutes);
 
-// 404 handler
 app.use((_req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found',
-  });
+  res.status(404).json({ success: false, message: 'Route not found' });
 });
 
-// Centralized error handler
 app.use(errorHandler);
 
 export default app;
