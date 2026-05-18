@@ -1,9 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment files
 .env
+server/.env
+client/.env
+
+# IDE
+.DS_Store
+.vscode/
+.idea/
+
+# Project docs (not source)
 mcp_config.json
 Full Stack Intern Assigment.pdf
-plan.md
 SmartLeadsDashboard_SRS.docx
 temp.txt
 ui_aesthetics.txt
-.DS_Store
 srs_doc.md
+plan.md
