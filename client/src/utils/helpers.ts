@@ -35,12 +35,23 @@ export const formatRelativeTime = (date: string | null | undefined): string => {
  * Triggers a CSV file download from a Blob.
  */
 export const downloadCsv = (blob: Blob, filename?: string): void => {
-  const url = window.URL.createObjectURL(blob);
+  const finalFilename = filename || `leads_export_${Date.now()}.csv`;
+  // Ensure the blob is explicitly typed as text/csv
+  const csvBlob = new Blob([blob], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(csvBlob);
+  
   const link = document.createElement('a');
   link.href = url;
-  link.download = filename || `leads_export_${Date.now()}.csv`;
+  link.download = finalFilename;
+  
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+  
+  // Delay cleanup to ensure browser download manager has time to capture the filename
+  setTimeout(() => {
+    if (document.body.contains(link)) {
+      document.body.removeChild(link);
+    }
+    window.URL.revokeObjectURL(url);
+  }, 500);
 };

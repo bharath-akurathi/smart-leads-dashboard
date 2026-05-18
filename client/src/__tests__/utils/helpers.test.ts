@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { formatDate, formatRelativeTime, downloadCsv } from '../../utils/helpers';
 
 describe('formatDate', () => {
@@ -54,16 +54,28 @@ describe('formatRelativeTime', () => {
 });
 
 describe('downloadCsv', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should trigger a download by creating an anchor element', () => {
     const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
     const appendSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((el: any) => el);
     const removeSpy = vi.spyOn(document.body, 'removeChild').mockImplementation((el: any) => el);
+    vi.spyOn(document.body, 'contains').mockReturnValue(true);
 
     const blob = new Blob(['name,email\nJohn,john@test.com'], { type: 'text/csv' });
     downloadCsv(blob, 'test_export.csv');
 
     expect(clickSpy).toHaveBeenCalledOnce();
     expect(appendSpy).toHaveBeenCalledOnce();
+    
+    // Fast-forward the 500ms timeout
+    vi.runAllTimers();
     expect(removeSpy).toHaveBeenCalledOnce();
 
     clickSpy.mockRestore();
@@ -92,6 +104,7 @@ describe('downloadCsv', () => {
 
     const blob = new Blob(['test'], { type: 'text/csv' });
     downloadCsv(blob);
+    vi.runAllTimers();
 
     expect(capturedDownload).toMatch(/leads_export_\d+\.csv/);
 
