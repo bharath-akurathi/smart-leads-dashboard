@@ -1,6 +1,14 @@
 import mongoose from 'mongoose';
 
+let isConnected = false;
+
 const connectDB = async (): Promise<void> => {
+  // If already connected, reuse the active connection instance
+  if (isConnected) {
+    console.log('✅ Using existing MongoDB connection');
+    return;
+  }
+
   try {
     const mongoURI = process.env.MONGO_URI;
     if (!mongoURI) {
@@ -11,10 +19,13 @@ const connectDB = async (): Promise<void> => {
       dbName: 'smart-leads',
     });
 
+    isConnected = !!conn.connections[0].readyState;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error('❌ MongoDB Connection Error:', error);
-    process.exit(1);
+    // CRITICAL: Do NOT use process.exit(1) here for Vercel.
+    // Instead, throw the error so the serverless function framework can log it.
+    throw error; 
   }
 };
 
